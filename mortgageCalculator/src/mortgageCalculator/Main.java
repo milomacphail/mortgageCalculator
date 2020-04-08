@@ -3,58 +3,64 @@ package mortgageCalculator;
 
 import java.util.Scanner;
 import java.lang.Math;
+import java.text.NumberFormat;
 
 public class Main {
 
+	final static byte MONTHS_IN_YEAR = 12;
+	final static byte PERCENT = 100;
+	
 	public static void main(String[] args) {
 
 				Scanner scanner = new Scanner(System.in);
 				
-				int principal = 1;
-				while(true) {
-					System.out.print("Principal: ");
-					principal = scanner.nextInt();
-					if(principal >= 1000 && principal <= 1_000_000) {
-						System.out.println(principal);
-						break;
-					}
-					System.out.println("Enter a value between $1000 and $1000000");
+				int principal = (int)readNumber("Principal: ", 1000, 1_000_000);
+				float annualInterestRate = (float)readNumber("Annual Interest Rate: ", 0, 100);
+				int mortgageTerm = (int)readNumber("Term of mortgage in years:", 1, 30 );
+	
+				double mortgage = calculateMortgage(principal, annualInterestRate, mortgageTerm);
+				System.out.println();
+				System.out.println("MORTGAGE");
+				System.out.println("--------");
+				System.out.println("Mortgage: $" + mortgage);
+				
+				System.out.println();
+				System.out.println("PAYMENT SCHEDULE");
+				System.out.println("----------------");
+				for (short month = 1; month <= mortgageTerm * MONTHS_IN_YEAR; month++) {
+					double balance = calculateBalance(principal, annualInterestRate, mortgageTerm, month);
+					System.out.println(NumberFormat.getCurrencyInstance().format(balance));
 				}
-				
-				double annualInterestRate = -0.1;
-				
+	}
+			public static double readNumber(String prompt, double min, double max) {
+				Scanner scanner = new Scanner(System.in);
+				double value;
 				while(true) {
-					System.out.print("Annual Interest Rate: ");
-					annualInterestRate = scanner.nextDouble();
-					if(annualInterestRate >= 0)
-					{
-						System.out.println(annualInterestRate);
+					System.out.print(prompt);
+					value = scanner.nextFloat();
+					if(value >= min && value <= max)
 						break;
-					}
-					System.out.println("Interest rate must be higher than 0%: ");
+					System.out.println("Enter a value between " + min + " and " + max +".");
 				}
-			
-				
-				int mortgageTerm = -1;
-				
-				while(true) {
-					System.out.print("Mortage term: ");
-					mortgageTerm = scanner.nextInt();
-					if(mortgageTerm >= 0)
-					{
-						System.out.println("Mortgage term is: " + mortgageTerm + " years.");
-						break;
-					}
-					System.out.println("Mortgage term must be more than 0 years.");
-				}
-			
-				
-				int months = mortgageTerm * 12;
-				System.out.println("Months: " + months);
-				double monthlyRate = ((annualInterestRate/100) / 12);
-				System.out.println("Monthly Rate: " + monthlyRate);
-				double monthlyMortgageInterest = principal * (monthlyRate * Math.pow(1 + monthlyRate, months))/ (Math.pow(1 + monthlyRate, months) - 1);
-				System.out.println("$"+monthlyMortgageInterest);
-
+				return value;
 			}
+			
+			public static double calculateMortgage(int principal, float annualInterestRate, int mortgageTerm) {
+				float numberOfPayments = mortgageTerm * MONTHS_IN_YEAR;
+				float monthlyMortgageRate = annualInterestRate / PERCENT / MONTHS_IN_YEAR;
+				double mortgagePayment = principal * (monthlyMortgageRate * Math.pow(1 + monthlyMortgageRate, numberOfPayments))/ (Math.pow(1 + monthlyMortgageRate, numberOfPayments) - 1);
+				return mortgagePayment;
+			}
+			
+			public static double calculateBalance (int principal, float annualInterestRate, int mortgageTerm, short numberOfPaymentsMade) {
+				float numberOfPayments = mortgageTerm * MONTHS_IN_YEAR;
+				float monthlyMortgageRate = annualInterestRate / PERCENT / MONTHS_IN_YEAR;
+				double balance = principal * (Math.pow(1 + monthlyMortgageRate, numberOfPayments) - Math.pow(1 + monthlyMortgageRate, numberOfPaymentsMade)) /
+						 (Math.pow(1 + monthlyMortgageRate, numberOfPayments));
+				
+				return balance;
+			}
+
+
+			
 	}
